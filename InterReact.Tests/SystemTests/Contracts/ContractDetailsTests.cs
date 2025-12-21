@@ -17,8 +17,8 @@ public class ContractDetail(ITestOutputHelper output, TestFixture fixture) : Col
         ContractDetails[] cds = await Client
             .Service
             .CreateContractDetailsObservable(contract)
-            .CancelOn(CancellationToken.None)
-            .Timeout(TimeSpan.FromSeconds(5))
+            .OfTypeOnly<ContractDetails>()
+            .WithTimeout(TimeSpan.FromSeconds(5))
             .Catch<ContractDetails, Exception>(ex =>
             {
                 // Could be symbol not found, timout or other error
@@ -70,7 +70,7 @@ public class ContractDetail(ITestOutputHelper output, TestFixture fixture) : Col
 
         var ex = await Assert.ThrowsAsync<AlertException>(async () => await Client
             .Service
-            .CreateContractDetailsObservable(contract));
+            .GetContractDetailsAsync(contract));
 
         Write(ex.Message);
     }

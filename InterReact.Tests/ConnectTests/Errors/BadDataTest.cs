@@ -30,7 +30,7 @@ public class BadData(ITestOutputHelper output) : ConnectTestBase(output, LogLeve
 
         object message = await task;
 
-        AlertMessage alert = Assert.IsType<AlertMessage>(message);
+        Alert alert = Assert.IsType<Alert>(message);
 
         Assert.StartsWith("No security definition has been found for the request", alert.Message);
     }

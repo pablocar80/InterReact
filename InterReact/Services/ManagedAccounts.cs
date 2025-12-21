@@ -1,20 +1,33 @@
-﻿namespace InterReact;
+﻿using System.Diagnostics;
+namespace InterReact;
 
 public partial class Service
 {
-    public IObservable<string[]> CreateManagedAccountsObservable()
+    private readonly SemaphoreSlim ManagedAccountsSemaphore = new(1, 1);
+
+    public async Task<IReadOnlyList<string>> GetManagedAccountsAsync(TimeSpan? timeout = null, CancellationToken ct = default)
     {
-        IObservable<string[]> observable = Response
-            .OfType<ManagedAccounts>()
-            .FirstAsync()
-            .Select(x => x.Accounts.Split(',', StringSplitOptions.RemoveEmptyEntries));
+        await ManagedAccountsSemaphore.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            if (Options.ManagedAccounts.Count == 0)
+            {
+                // Options.ManagedAccounts is updated whenever a ManagedAccounts message is received.
+                await Response
+                    .OfType<ManagedAccounts>()
+                    .ToObservable(Request.RequestManagedAccounts)
+                    .Select(x => x.Accounts)
+                    .WithTimeout(timeout, ct)
+                    .SingleAsync();
+            }
 
-        Request.RequestManagedAccounts();
+            Debug.Assert(Options.ManagedAccounts.Count > 0);
 
-        return observable;
+            return Options.ManagedAccounts;
+        }
+        finally
+        {
+            ManagedAccountsSemaphore.Release();
+        }
     }
-
-    public async Task<string[]> GetManagedAccountsAsync(TimeSpan? timeout = null) =>
-        await CreateManagedAccountsObservable()
-            .Timeout(timeout ?? TimeSpan.MaxValue);
 }

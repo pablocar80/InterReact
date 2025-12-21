@@ -2,11 +2,12 @@
 
 public sealed class ManagedAccounts
 {
-    public string Accounts { get; }
+    public IReadOnlyList<string> Accounts { get; }
 
     internal ManagedAccounts(ResponseReader r)
     {
         r.IgnoreMessageVersion();
-        Accounts = r.ReadString();
+        Accounts = r.ReadString().Split(',', StringSplitOptions.RemoveEmptyEntries);
+        r.Options.ManagedAccounts = Accounts;
     }
 }

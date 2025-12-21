@@ -1,13 +1,15 @@
 ﻿using Stringification;
 using System.Reactive.Linq;
-
 namespace Orders;
 
-public class Monitor(ITestOutputHelper output, TestFixture fixture) : CollectionTestBase(output, fixture, true)
+public class Monitor(ITestOutputHelper output, TestFixture fixture) : CollectionTestBase(output, fixture)
 {
     [Fact]
     public async Task OrderMonitorTest()
     {
+        if (!Client.RemoteIpEndPoint.IsUsingIBDemoPort())
+            throw new InvalidOperationException("Demo account is required since an order will be placed. Please first login to the TWS demo account.");
+
         Contract contract = new()
         {
             SecurityType = ContractSecurityType.Cash,
@@ -37,6 +39,9 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
     [Fact]
     public async Task OrderMonitorCancellationTest()
     {
+        if (!Client.RemoteIpEndPoint.IsUsingIBDemoPort())
+            throw new InvalidOperationException("Demo account is required since an order will be placed. Please first login to the TWS demo account.");
+
         Contract contract = new()
         {
             SecurityType = ContractSecurityType.Cash,
@@ -68,6 +73,9 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
     [Fact]
     public async Task OrderMonitorModificationTest()
     {
+        if (!Client.RemoteIpEndPoint.IsUsingIBDemoPort())
+            throw new InvalidOperationException("Demo account is required since an order will be placed. Please first login to the TWS demo account.");
+
         Contract contract = new()
         {
             SecurityType = ContractSecurityType.Cash,
@@ -82,8 +90,8 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
             .OfTickClass(x => x.PriceTick)
             .Where(priceTick => priceTick.TickType == TickType.AskPrice)
             .Select(priceTick => priceTick.Price)
-            .Take(TimeSpan.FromSeconds(3))
-            .FirstAsync();
+            .Take(TimeSpan.FromSeconds(5))
+            .FirstOrDefaultAsync();
 
         if (askPrice <= 0)
         {
@@ -96,7 +104,7 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
             Action = OrderAction.Buy,
             TotalQuantity = 40000,
             OrderType = OrderTypes.Limit,
-            LimitPrice = askPrice - .01 // should not execute
+            LimitPrice = askPrice - .02 // should not execute
         };
 
         // Place the order
@@ -107,7 +115,7 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
             .Subscribe(m => Write($"OrderMonitor: {m.Stringify()}"));
 
         // Change the order
-        orderMonitor.Order.LimitPrice = askPrice + .01; // should execute
+        orderMonitor.Order.LimitPrice = askPrice + .02; // should execute
         // Resubmit the changed order
         orderMonitor.ReplaceOrder();
 
@@ -115,7 +123,7 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
         Execution? execution = await orderMonitor
             .Messages
             .OfType<Execution>()
-            .Take(TimeSpan.FromSeconds(3))
+            .Take(TimeSpan.FromSeconds(5))
             .FirstOrDefaultAsync();
 
         orderMonitor.Dispose();

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Net;
+using System.Reactive.Linq;
 /*
 * Be sure that Trader Workstation (TWS) is running on your machine and that the following is set:
 * File / GlobalConfiguration / API / Settings/ "Enable ActiveX and Socket Clients".

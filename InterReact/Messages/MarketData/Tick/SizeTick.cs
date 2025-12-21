@@ -3,10 +3,8 @@
 /// <summary>
 /// Size only. For example, a trade/bid/ask at the previous trade/bid/ask price.
 /// </summary>
-public sealed class SizeTick : ITick
+public sealed class SizeTick : TickBase
 {
-    public int RequestId { get; }
-    public TickType TickType { get; }
     public decimal Size { get; }
     internal SizeTick()
     {

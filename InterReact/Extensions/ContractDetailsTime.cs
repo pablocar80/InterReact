@@ -108,7 +108,7 @@ public sealed class ContractDetailsTime
     /// <summary>
     /// Creates an observable which emits Contract time events for the specified contract details.
     /// </summary>
-    [SuppressMessage("Usage", "CA1031", Scope = "member")]
+    //[SuppressMessage("Usage", "CA1031", Scope = "member")]
     private IObservable<ContractDetailsTimePeriod> CreateContractTimeObservable()
     {
         return Observable.Create<ContractDetailsTimePeriod>(observer =>

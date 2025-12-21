@@ -61,9 +61,6 @@ public sealed class ObservableTests(ITestOutputHelper output) : UnitTestBase(out
 
         IList<int> x1 = await o.TakeWhile(x => x == 1).ToList(); // exclusive 1
         IList<int> x2 = await o.TakeWhile(x => x != 3).ToList(); // exclusive 12
-
-        IList<int> x11 = await o.TakeWhileInclusive(x => x == 1).ToList(); // inclusive 12
-        IList<int> x22 = await o.TakeWhileInclusive(x => x != 3).ToList(); // inclusive 123
     }
 
     [Fact]
@@ -101,33 +98,10 @@ public sealed class ObservableTests(ITestOutputHelper output) : UnitTestBase(out
         });
     }
 
-    //private void Some(IReadOnlyList<string> argx)
-    //private void Some(IReadOnlyCollection<string> argx)
-    private void Some(IList<string> argx)
-    //private void Some(string[] arg)
-    //private void Some(IEnumerable<string> arg)
-    {
-
-    }
-
     [Fact]
     public async Task Cancellation()
     {
-        var arrayx = new[] { "a", "b", "c" };
-        IEnumerable<string> enumx = new[] { "a", "b", "c" };
-        List<string> list = arrayx.ToList();
-        IList<string> list2 = arrayx.ToList();
-
-        //Some(enumx);
-        Some(arrayx);
-        Some(["xx"]);
-        Some(list);
-        Some(list2);
-
-
-
         //await Observable.Throw<string>(new IndexOutOfRangeException());
-
         //await Observable.Return("a").Timeout(TimeSpan.Zero);
 
         CancellationTokenSource cts = new();
@@ -136,8 +110,7 @@ public sealed class ObservableTests(ITestOutputHelper output) : UnitTestBase(out
 
         string s = await CreateObservable()
             .FirstAsync()
-            .CancelOn(cts.Token)
-            .Timeout(TimeSpan.FromSeconds(3))
+            .WithTimeout(TimeSpan.FromSeconds(3), cts.Token)
             //.Catch(Observable.Empty<string>())
             .Catch<string, Exception>(ex =>
             {

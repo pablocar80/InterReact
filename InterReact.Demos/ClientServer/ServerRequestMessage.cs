@@ -9,5 +9,5 @@ public static partial class Extension
 public sealed class ServerRequestMessage(string[] strings)
 {
     internal RequestCode RequestCode { get; } = Enum.Parse<RequestCode>(strings[0]);
-    public List<string> Strings { get; } = strings.Skip(1).ToList();
+    public string[] Strings { get; } = strings.Skip(1).ToArray();
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
-
+using System.Net;
 namespace SystemTests;
 
 public sealed class TestFixture : IAsyncLifetime
@@ -15,7 +15,13 @@ public sealed class TestFixture : IAsyncLifetime
             .SetMinimumLevel(LogLevel.Information));
 
         Client = await InterReactClient
-            .ConnectAsync(options => options.LogFactory = loggerFactory)
+            .ConnectAsync(options =>
+            {
+                options.LogFactory = loggerFactory;
+                options.UseDelayedTicks = false;
+                options.TwsIpAddress = IPAddress.Parse("192.168.100.15");
+                //options.AllowOrderPlacement = true;
+            })
             .ConfigureAwait(false);
 
         // Tests should be run with the demo account since orders are submitted.
@@ -25,6 +31,7 @@ public sealed class TestFixture : IAsyncLifetime
         // The demo account does not have data subscriptions, so use delayed data.
         // Note that delayed data produces delayed tick types: 
         // TickType.BidPrice => TickType.DelayedBidPrice.
+        // unless: options.UseDelayedTicks = false;
         Client.Request.RequestMarketDataType(MarketDataType.Delayed);
     }
 
@@ -56,14 +63,12 @@ public abstract class CollectionTestBase : IDisposable
     protected void Write(string str) =>
         Output.WriteLine(str);
 
-    protected CollectionTestBase(ITestOutputHelper output, TestFixture fixture, bool orderPlacement = false)
+    protected CollectionTestBase(ITestOutputHelper output, TestFixture fixture)
     {
         Output = output;
         fixture.SharedWriter.Add(output.WriteLine);
         RemoveWriter = () => fixture.SharedWriter.Remove(output.WriteLine);
         Client = fixture.Client ?? throw new NullReferenceException("Client");
-        if (orderPlacement && !Client.RemoteIpEndPoint.IsUsingIBDemoPort())
-            throw new InvalidOperationException("Demo account is required since an order will be placed. Please first login to the TWS demo account.");
     }
 
     protected virtual void Dispose(bool disposing)

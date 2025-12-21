@@ -12,39 +12,21 @@ public static partial class Extension
             .OfType<IHasOrderId>()
             .Where(m => m.OrderId == orderId);
 
-    public static IObservable<T> TakeWhileInclusive<T>(this IObservable<T> source, Func<T, bool> predicate) =>
-        Observable.Create<T>(o =>
-            source.Subscribe(m =>
-            {
-                o.OnNext(m);
-                if (!predicate(m))
-                    o.OnCompleted();
-            }
-        ));
-
-    public static IObservable<T[]> Accumulate<T, TEnd>(this IObservable<object> source)
-    {
-        return Observable.Create <T[]>(observer =>
+    public static IObservable<T> OfTypeOnly<T>(this IObservable<object> source) =>
+        Observable.Create<T>(observer =>
         {
-            List<T> list = [];
-            return source.Subscribe(onNext: o =>
-            {
-                if (o is T t)
+            return source.Subscribe(
+                m =>
                 {
-                    list.Add(t);
-                    return;
-                }
-                if (o is TEnd)
-                {
-                    observer.OnNext([.. list]);
-                    list.Clear();
-                    return;
-                }
-                throw new InvalidOperationException($"Invalid type: {o.GetType().Name}.");
-            }, 
-            onError: observer.OnError,
-            onCompleted: observer.OnCompleted);
+                    if (m is T t)
+                        observer.OnNext(t);
+                    else if (m is Alert a)
+                        observer.OnError(a.ToAlertException());
+                    else
+                        observer.OnError(new InvalidOperationException($"Unexpected type: {m.GetType().Name}."));
+                },
+                observer.OnError,
+                observer.OnCompleted);
         });
-    }
 
 }

@@ -1,5 +1,4 @@
 ﻿using Stringification;
-
 namespace InterReact;
 
 public sealed class Tag // input + output
@@ -14,8 +13,8 @@ public sealed class Tag // input + output
         if (tags is null)
             return "";
 
-        List<Tag> tagsList = tags.ToList();
-        if (tagsList.Count == 0)
+        Tag[] tagsList = tags.ToArray();
+        if (tagsList.Length == 0)
             return "";
 
         return tagsList

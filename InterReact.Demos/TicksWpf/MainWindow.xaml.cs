@@ -9,14 +9,13 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows;
 using System.Windows.Media;
-
 namespace TicksWpf;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-
     private readonly Subject<string> SymbolSubject = new();
+
     public string Symbol
     {
         set => SymbolSubject.OnNext(value);
@@ -115,7 +114,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         try
         {
-            Client = await InterReactClient.ConnectAsync();
+            Client = await InterReactClient.ConnectAsync(options => options.UseDelayedTicks = false);
         }
         catch (Exception exception)
         {
@@ -123,29 +122,31 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        // display response messages to the debug window.
+        // Display response messages to the debug window.
         Client.Response.Subscribe(
             msg => Debug.WriteLine(msg.Stringify()),
-            //ex => Utilities.MessageBoxShow(ex.Message, "InterReact"));
-            ex => Debug.WriteLine(ex.Message));
+            ex => Utilities.MessageBoxShow(ex.Message, "InterReact"));
 
+        // Use delayed market data in case there is no real-time data subscription.
+        // Delayed data is notmally received through delayed data ticks. 
+        // However, delayed data is received through notmal ticks due to the setting above: "options.UseDelayedTicks = false"
         Client.Request.RequestMarketDataType(MarketDataType.Delayed);
 
         // Subscribe to changes of the text in the SymbolTextBox.
         SymbolSubject
+            .Throttle(TimeSpan.FromMilliseconds(500))
             .DistinctUntilChanged()
+            .ObserveOnDispatcher()
             .Subscribe(UpdateSymbol);
     }
 
     private async void UpdateSymbol(string symbol)
     {
-        // Note that this is the UI thread.
-        Application.Current.Dispatcher.VerifyAccess();
-
         Description = "";
         BidPrice = AskPrice = LastPrice = ChangePrice = 0;
 
-        // Disposing the connection cancels the IB data subscription and conveniently disposes all subscriptions to the observable.
+        // Disposing the connection cancels the previous IB data subscription
+        // and conveniently disposes all subscriptions to the observable (below).
         TicksConnection.Dispose();
 
         if (string.IsNullOrWhiteSpace(symbol))
@@ -159,37 +160,33 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Exchange = "SMART"
         };
 
-        ContractDetails cd = await Client.Service
+        IHasRequestId message = await Client.Service
             .CreateContractDetailsObservable(contract)
-            .Timeout(TimeSpan.FromSeconds(5))
-            .Catch<ContractDetails, Exception>(ex =>
-            {
-                // Could be symbol format, not found, error or timeout.
-                Utilities.MessageBoxShow(ex.Message, "InterReact");
-                return Observable.Empty<ContractDetails>();
-            })
-            .FirstOrDefaultAsync();
+            .FirstAsync();
 
-        if (cd == null)
-            return;
-
-        // Display the stock name.
-        Description = cd.LongName;
-
-        SubscribeToTicks(contract);
+        if (message is ContractDetails cd)
+        {
+            Description = cd.LongName;
+            SubscribeToTicks(cd.Contract);
+        }
+        else if (message is Alert alert)
+            Utilities.MessageBoxShow(alert.Message, "InterReact");
+        else
+            Utilities.MessageBoxShow("Unhandled type: " + message.GetType().Name + "", "InterReact");
     }
 
     private void SubscribeToTicks(Contract contract)
     {
-        // Create a connectable observable which will emit realtime updates.
+        // Create a connectable observable which will emit updates.
         IConnectableObservable<IHasRequestId> ticks = Client
             .Service
             .CreateMarketDataObservable(contract)
-            .ObserveOnDispatcher()
             .Publish();
 
         ticks.Subscribe(onNext: _ => { }, onError: exception => MessageBox.Show($"Fatal: {exception.Message}"));
-        ticks.OfTickClass(t => t.Alert).Subscribe(alert => MessageBox.Show($"{alert.Message}"));
+        ticks.OfTickClass(t => t.Alert)
+            .Where(alert => alert.Code != AlertDefinition.MarketDataNotSubscribed.Code)
+            .Subscribe(alert => MessageBox.Show($"{alert.Message}"));
 
         IObservable<PriceTick> priceTicks = ticks.OfTickClass(t => t.PriceTick);
         priceTicks.Where(t => t.TickType == TickType.BidPrice || t.TickType == TickType.DelayedBidPrice)
@@ -197,7 +194,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         priceTicks.Where(t => t.TickType == TickType.AskPrice || t.TickType == TickType.DelayedAskPrice)
             .Select(t => t.Price).Subscribe(p => AskPrice = p);
 
-        IObservable<double> lastPrices = priceTicks.Where(t => t.TickType == TickType.LastPrice || t.TickType == TickType.DelayedLastPrice)
+        IObservable<double> lastPrices = priceTicks
+            .Where(t => t.TickType == TickType.LastPrice || t.TickType == TickType.DelayedLastPrice)
             .Select(t => t.Price);
         lastPrices.Subscribe(p => LastPrice = p);
 
@@ -209,6 +207,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         TicksConnection = ticks.Connect();
     }
 
-    private async void MainWindow_OnClosing(object sender, CancelEventArgs e) => await Client.DisposeAsync();
-}
+    private async void MainWindow_OnClosing(object sender, CancelEventArgs e)
+    {
+        TicksConnection.Dispose();
+        await Client.DisposeAsync();
+    }
 
+}

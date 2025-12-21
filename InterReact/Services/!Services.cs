@@ -1,10 +1,19 @@
 ﻿namespace InterReact;
 
-public partial class Service(Request request, Response response) : IDisposable
+public partial class Service : IDisposable
 {
-    private readonly Request Request = request;
-    private readonly Response Response = response;
+    private readonly InterReactOptions Options;
+    private readonly Request Request;
+    private readonly Response Response;
     private bool Disposed;
+
+    public Service(InterReactOptions options, Request request, Response response)
+    {
+        Options = options;
+        Request = request;
+        Response = response;
+        AccountPositionsObservable = CreateAccountPositionsObservable();
+    }
 
     protected virtual void Dispose(bool disposing)
     {
@@ -14,6 +23,7 @@ public partial class Service(Request request, Response response) : IDisposable
         if (disposing)
         {
             // dispose managed objects
+            ManagedAccountsSemaphore.Dispose();
         }
 
         Disposed = true;

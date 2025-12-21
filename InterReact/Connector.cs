@@ -73,7 +73,7 @@ internal sealed class Connector
         {
             ipEndPoint.Port = port;
             var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            cts.CancelAfter(TimeSpan.FromSeconds(1));
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
             try
             {
                 return await ipEndPoint.CreateRxSocketClientAsync(Options.LogFactory, cts.Token).ConfigureAwait(false);
@@ -119,15 +119,14 @@ internal sealed class Connector
         {
             message = await rxSocketClient
                 .ReceiveObservable
+                .WithTimeout(TimeSpan.FromSeconds(5), ct)
                 .ToArraysFromBytesWithLengthPrefix()
                 .ToStringArrays()
-                .FirstAsync()
-                .ToTask(ct)
-                .ConfigureAwait(false);
+                .FirstAsync();
         }
         catch (TimeoutException e)
         {
-            throw new TimeoutException("Timeout waiting for the first response from TWS/Gateway. Try restarting.", e);
+            throw new TimeoutException("Timeout waiting for response from TWS/Gateway. Try restarting.", e);
         }
 
         // ServerVersion is the highest supported API version within the range specified.
@@ -137,7 +136,7 @@ internal sealed class Connector
         if (Options.ServerVersionCurrent < Options.ServerVersionMin || Options.ServerVersionCurrent > Options.ServerVersionMax)
             throw new InvalidDataException($"Invalid server version '{Options.ServerVersionCurrent}'.");
 
-        // message[1] is Date
+        // The next message is usually, but not always, ManagedAccounts.
 
         // local method
         void SendWithPrefix(params string[] strings) => rxSocketClient

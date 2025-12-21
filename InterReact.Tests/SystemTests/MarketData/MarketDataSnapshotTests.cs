@@ -1,7 +1,6 @@
 ﻿using Stringification;
 using System;
 using System.Reactive.Linq;
-
 namespace MarketData;
 
 public class MarketDataSnapshot(ITestOutputHelper output, TestFixture fixture) : CollectionTestBase(output, fixture)
@@ -19,13 +18,11 @@ public class MarketDataSnapshot(ITestOutputHelper output, TestFixture fixture) :
 
         IObservable<IHasRequestId> observable = Client.Service.CreateMarketDataSnapshotObservable(contract);
 
-        IHasRequestId[] ticks = await observable
-            //.ThrowAlertMessage()
-            //.OfType<PriceTick>()
-            //.OfTickClass(x => x.PriceTick)
-            .ToArray();
+        IHasRequestId[] ticks = await observable.ToArray();
 
         Assert.NotEmpty(ticks);
+
+        //Assert.All(ticks, t => Assert.IsNotType<Alert>(t));
 
         foreach (var tick in ticks)
             Write(tick.Stringify());
@@ -44,7 +41,10 @@ public class MarketDataSnapshot(ITestOutputHelper output, TestFixture fixture) :
 
         IObservable<IHasRequestId> observable = Client.Service.CreateMarketDataSnapshotObservable(contract);
 
-        var ex = await Assert.ThrowsAsync<AlertException>(async () => await observable.FirstAsync());
-        Assert.StartsWith("Alert: No security definition has been found", ex.Message);
+        IHasRequestId msg = await observable.FirstAsync();
+
+        Alert alertMessage = Assert.IsType<Alert>(msg);
+        
+        Assert.StartsWith("No security definition has been found", alertMessage.Message);
     }
 }

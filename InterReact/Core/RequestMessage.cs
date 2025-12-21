@@ -106,20 +106,3 @@ public sealed class RequestMessage
         contract.Write(this, includePrimaryExchange);
 }
 
-internal static class RequestMessageExtensions
-{
-    internal static string ToMax(this double val)
-    {
-        if (val == double.MaxValue)
-            return "";
-        if (val == double.PositiveInfinity)
-            return ("Infinity");
-        return val.ToString(CultureInfo.InvariantCulture);
-    }
-    internal static string ToMax(this int val)
-    {
-        if (val == int.MaxValue)
-            return "";
-        return val.ToString(CultureInfo.InvariantCulture);
-    }
-}

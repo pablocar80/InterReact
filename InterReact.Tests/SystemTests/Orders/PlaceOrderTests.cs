@@ -1,13 +1,15 @@
 ﻿using Stringification;
 using System.Reactive.Linq;
-
 namespace Orders;
 
-public class Place(ITestOutputHelper output, TestFixture fixture) : CollectionTestBase(output, fixture, true)
+public class Place(ITestOutputHelper output, TestFixture fixture) : CollectionTestBase(output, fixture)
 {
     [Fact]
     public async Task PlaceOrderTest()
     {
+        if (!Client.RemoteIpEndPoint.IsUsingIBDemoPort())
+            throw new InvalidOperationException("Demo account is required since an order will be placed. Please first login to the TWS demo account.");
+
         Contract contract = new()
         {
             SecurityType = ContractSecurityType.Commodity,
@@ -32,6 +34,9 @@ public class Place(ITestOutputHelper output, TestFixture fixture) : CollectionTe
 
         Client.Request.PlaceOrder(orderId, order, contract);
 
-        await Task.Delay(TimeSpan.FromSeconds(10));
+        await Task.Delay(TimeSpan.FromSeconds(7));
+
+        Client.Request.CancelOrder(orderId);
     }
 }
+

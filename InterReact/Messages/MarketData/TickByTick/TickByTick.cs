@@ -2,7 +2,7 @@
 
 internal static class TickByTick
 {
-    internal static ITickByTick Create(ResponseReader r)
+    internal static TickByTickBase Create(ResponseReader r)
     {
         int requestId = r.ReadInt();
         TickByTickType tickType = r.ReadEnum<TickByTickType>();
@@ -17,10 +17,8 @@ internal static class TickByTick
     }
 }
 
-public sealed class TickByTickAllLast : ITickByTick
+public sealed class TickByTickAllLast : TickByTickBase
 {
-    public int RequestId { get; }
-    public TickByTickType TickByTickType { get; }
     public long Time { get; }
     public double Price { get; }
     public decimal Size { get; }
@@ -40,10 +38,8 @@ public sealed class TickByTickAllLast : ITickByTick
     }
 }
 
-public sealed class TickByTickBidAsk : ITickByTick
+public sealed class TickByTickBidAsk : TickByTickBase
 {
-    public int RequestId { get; }
-    public TickByTickType TickByTickType { get; }
     public long Time { get; }
     public double BidPrice { get; }
     public double AskPrice { get; }
@@ -63,10 +59,8 @@ public sealed class TickByTickBidAsk : ITickByTick
     }
 }
 
-public sealed class TickByTickMidpoint : ITickByTick
+public sealed class TickByTickMidpoint : TickByTickBase
 {
-    public int RequestId { get; }
-    public TickByTickType TickByTickType { get; }
     public long Time { get; }
     public double Midpoint { get; }
     internal TickByTickMidpoint(int requestId, TickByTickType type, ResponseReader r)

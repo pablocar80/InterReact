@@ -1,15 +1,12 @@
-﻿using System.Globalization;
-namespace InterReact;
+﻿namespace InterReact;
 
-public sealed class StringTick : ITick
+public sealed class StringTick : TickBase
 {
-    public int RequestId { get; private init; }
-    public TickType TickType { get; private init; } = TickType.Undefined;
     public string Value { get; private init; } = "";
     private StringTick(int requestId, TickType tickType, string value) 
         => (RequestId, TickType, Value) = (requestId, tickType, value);
 
-    internal static ITick Create(ResponseReader r)
+    internal static TickBase Create(ResponseReader r)
     {
         r.IgnoreMessageVersion();
         int requestId = r.ReadInt();

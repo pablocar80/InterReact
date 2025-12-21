@@ -8,28 +8,25 @@ namespace InterReact;
 /// For messages which are not associated with a particular request or order, the Id is -1.
 /// In order to be compatible with the IHasRequestId and IHasOrderId interfaces, both requestId and orderId properties are included in Alert.
 /// </summary>
-public sealed class AlertMessage : IHasRequestId, IHasOrderId
+public sealed class Alert : IHasRequestId, IHasOrderId
 {
     public int RequestId { get; init; }
     public int OrderId { get; init; }
     public int Code { get; init; }
-    public bool IsFatal { get; init; }
     public string Message { get; init; }
     public string AdvancedOrderRejectJson { get; }
     internal Instant Time { get; init; }
-    internal AlertMessage() 
+    internal Alert() 
     {
         RequestId = OrderId = -1;
         Message = "";
         AdvancedOrderRejectJson = "";
     }
-    internal AlertMessage(ResponseReader r, IClock clock)
+    internal Alert(ResponseReader r, IClock clock)
     {
         r.RequireMessageVersion(2);
         RequestId = OrderId = r.ReadInt();
         Code = r.ReadInt();
-        // alerts are fatal by default if they are associated with a request
-        IsFatal = Alert.GetAlert(Code)?.IsFatal ?? RequestId > 0; 
         Message = Regex.Unescape(r.ReadString());
         string tempStr = r.ReadString();
         AdvancedOrderRejectJson = string.IsNullOrEmpty(tempStr) ? "" : Regex.Unescape(tempStr);
@@ -41,6 +38,6 @@ public sealed class AlertMessage : IHasRequestId, IHasOrderId
 [SuppressMessage("Design", "CA1032:Implement standard exception constructors")]
 public sealed class AlertException : Exception
 {
-    public AlertMessage AlertMessage { get; }
-    internal AlertException(AlertMessage alert) : base($"Alert: {alert.Message} ({alert.Code})") => AlertMessage = alert;
+    public Alert AlertMessage { get; }
+    internal AlertException(Alert alert) : base($"Alert: {alert.Message} ({alert.Code})") => AlertMessage = alert;
 }

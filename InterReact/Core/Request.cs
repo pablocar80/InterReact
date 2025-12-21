@@ -1,14 +1,13 @@
-﻿namespace InterReact;
+﻿using System.Globalization;
+
+namespace InterReact;
 
 /// <summary>
 /// Methods which send request messages to TWS/Gateway.
 /// Request methods are serialized, thread-safe and limited to a specified number of messages per second.
 /// </summary>
-public sealed class Request(InterReactOptions options, Func<RequestMessage> requestMessageFactory)
+public sealed class Request(InterReactOptions Options, Func<RequestMessage> CreateMessage)
 {
-    private InterReactOptions Options { get; } = options;
-    private Func<RequestMessage> CreateMessage { get; } = requestMessageFactory;
-
     /// <summary>
     /// Returns successive ids to uniquely identify requests and orders.
     /// The initial value is set during connection and may be greater than 0 in case there are previous orders.
@@ -54,8 +53,11 @@ public sealed class Request(InterReactOptions options, Func<RequestMessage> requ
 
     public void CancelMarketData(int requestId) => CreateMessage().Write(RequestCode.CancelMarketData, "1", requestId).Send();
 
-    public void PlaceOrder(int orderId, Order order, Contract contract) // the monster
+    public void PlaceOrder(int orderId, Order order, Contract contract) // monster
     {
+        if (Options.AllowOrderPlacement == false)
+            throw new InvalidOperationException("To place orders, first set Options.AllowOrderPlacement to true.");
+
         ArgumentNullException.ThrowIfNull(order);
         ArgumentNullException.ThrowIfNull(contract);
 
@@ -569,6 +571,7 @@ public sealed class Request(InterReactOptions options, Func<RequestMessage> requ
         if (tags is null || tags.Count == 0)
             tags = [.. Enum.GetValues<AccountSummaryTag>()];
         List<string> tagNames = tags.Select(tag => tag.ToString()).ToList();
+        tagNames.Add("$LEDGER:ALL");
         CreateMessage()
             .Write(RequestCode.RequestAccountSummary, "1", requestId)
             .Write(group, string.Join(",", tagNames))
@@ -591,11 +594,12 @@ public sealed class Request(InterReactOptions options, Func<RequestMessage> requ
     // 71: StartApi.
     // 72, 73: for IB internal use.
 
-    public void RequestPositionsMulti(int requestId, string account, string modelCode) =>
+    // Note that RequestPositionsMulti and RequestAccountUpdatesMulti require an account code when there are multiple accounts.
+    public void RequestPositionsMulti(int requestId, string account, string modelCode = "") =>
         CreateMessage().Write(RequestCode.RequestPositionsMulti, "1", requestId, account, modelCode).Send();
     public void CancelPositionsMulti(int requestId) => 
         CreateMessage().Write(RequestCode.CancelPositionsMulti, "1", requestId).Send();
-    public void RequestAccountUpdatesMulti(int requestId, string account, string modelCode, bool ledgerAndNlv) =>
+    public void RequestAccountUpdatesMulti(int requestId, string account, string modelCode = "", bool ledgerAndNlv = false) =>
         CreateMessage().Write(RequestCode.RequestAccountUpdatesMulti, "1", requestId, account, modelCode, ledgerAndNlv).Send();
     public void CancelAccountUpdatesMulti(int requestId) => 
         CreateMessage().Write(RequestCode.CancelAccountUpdatesMulti, "1", requestId).Send();
@@ -744,4 +748,22 @@ public sealed class Request(InterReactOptions options, Func<RequestMessage> requ
 
     public void CancelWshEventData(int requestId) => CreateMessage().Write(RequestCode.CancelWshEventData, requestId).Send();
     public void RequestUserInformation(int requestId) => CreateMessage().Write(RequestCode.ReqUserInfo, requestId).Send();
+}
+
+file static class RequestExtensions
+{
+    internal static string ToMax(this double val)
+    {
+        if (val == double.MaxValue)
+            return "";
+        if (val == double.PositiveInfinity)
+            return ("Infinity");
+        return val.ToString(CultureInfo.InvariantCulture);
+    }
+    internal static string ToMax(this int val)
+    {
+        if (val == int.MaxValue)
+            return "";
+        return val.ToString(CultureInfo.InvariantCulture);
+    }
 }

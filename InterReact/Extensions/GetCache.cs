@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 namespace InterReact;
@@ -11,43 +12,47 @@ public static partial class Extension
     /// Caching begins with the first observer and ends when there are no observers, 
     /// unless maintainSourceSubscription = true, in which case the source observable continues to update the cache.
     /// </summary>
-    public static IObservable<T> CacheSource<T>
-        (this IObservable<T> source, Func<T, string?> keySelector, 
-            Func<T, bool>? isEndMessage = null, bool maintainSourceSubscription = false)
+    public static IObservable<T[]> GetCache<T>
+        (this IObservable<T> source,
+        Func<T, string> keySelector,
+        Func<T, bool>? isEndMessage = null,
+        bool maintainSourceSubscription = false)
     {
         long index = 0;
-        Dictionary<string, (T Item, long Index)> cache = [];
-        Subject<T>? subject = null;
+        Dictionary<string, T> cache = [];
+        Subject<T[]>? subject = null;
         IDisposable? sourceSubscription = null;
+        // Wait until all messages are received to return result.
+        bool waitForEndMessage = (isEndMessage != null);
 
-        return Observable.Create<T>(observer =>
+        return Observable.Create<T[]>(observer =>
         {
             lock (cache)
             {
-                foreach (var value in cache.Values.OrderBy(v => v.Index))
-                    observer.OnNext(value.Item);
+                if (!waitForEndMessage)
+                    observer.OnNext(cache.Values.ToArray());
 
-                subject ??= new Subject<T>();
+                subject ??= new Subject<T[]>();
                 IDisposable subscription = subject.Subscribe(observer);
 
                 sourceSubscription ??= source.Subscribe(m =>
                 {
-                    string? key = keySelector(m);
-                    // string: item is cached based on the specified key
-                    // "":     all items are cached based on an arbitrary unique key
-                    // null:   item is emitted but not cached
                     lock (cache)
                     {
-                        if (key is not null)
+                        if (waitForEndMessage && isEndMessage != null && isEndMessage(m))
                         {
-                            // preserve the order of items in the cache
-                            // return the end message last so that the observer may use it to complete.
-                            long i = isEndMessage != null && isEndMessage(m) ? long.MaxValue : index++;
-                            if (key.Length == 0)
-                                key = "~" + i.ToString(CultureInfo.InvariantCulture);
-                            cache[key] = (m, i);
+                            waitForEndMessage = false;
+                            subject.OnNext(cache.Values.ToArray());
+                            return;
                         }
-                        subject.OnNext(m);
+                        string key = keySelector(m);
+                        // string: items are cached based on the specified key
+                        // "":     every item is cached based on an arbitrary unique key
+                        if (key.Length == 0)
+                            key = "~" + index++.ToString(CultureInfo.InvariantCulture);
+                        cache[key] = m;
+                        if (!waitForEndMessage) 
+                            subject.OnNext(cache.Values.ToArray());
                     }
                 }, subject.OnError, subject.OnCompleted);
 
@@ -67,6 +72,7 @@ public static partial class Extension
                         subject = null;
 
                         cache.Clear();
+                        waitForEndMessage = (isEndMessage != null);
                     }
                 });
             }

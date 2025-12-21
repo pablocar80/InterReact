@@ -22,7 +22,7 @@ public class CacheSourceTests(ITestOutputHelper output) : ReactiveUnitTestBase(o
             OnNext(200, "two"),
             OnNext(300, "three"));
 
-        IObservable<string> observable = source.CacheSource(x => x, y => false);
+        IObservable<string> observable = source.CacheSource(x => x);
 
         observable.Subscribe(observer1);
         testScheduler.AdvanceBy(150);
@@ -42,7 +42,7 @@ public class CacheSourceTests(ITestOutputHelper output) : ReactiveUnitTestBase(o
     [Fact]
     public async Task T01_Empty()
     {
-        IObservable<string> observable = Observable.Empty<string>().CacheSource(x => x, y => false); // completes
+        IObservable<string> observable = Observable.Empty<string>().CacheSource(x => x); // completes
         InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(() => observable.ToTask());
         Assert.Equal("Sequence contains no elements.", ex.Message);
     }
@@ -51,7 +51,7 @@ public class CacheSourceTests(ITestOutputHelper output) : ReactiveUnitTestBase(o
     public async Task T03_Cache()
     {
         Subject<string> source = new();
-        IObservable<string> observable = source.CacheSource(x => x, y => false);
+        IObservable<string> observable = source.CacheSource(x => x);
 
         observable.Subscribe(); // start cache
 
@@ -76,7 +76,7 @@ public class CacheSourceTests(ITestOutputHelper output) : ReactiveUnitTestBase(o
     public void T04_Throw_In_OnNext()
     {
         Subject<string> source = new();
-        IObservable<string> observable = source.CacheSource(x => x, y => false);
+        IObservable<string> observable = source.CacheSource(x => x);
 
         observable.Subscribe(x =>
             throw new BarrierPostPhaseException("some exception"));

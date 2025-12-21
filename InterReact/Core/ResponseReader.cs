@@ -4,8 +4,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 namespace InterReact;
 
-public sealed class ResponseReader(
-    ILogger<ResponseReader> logger, InterReactOptions options, ResponseParser parser)
+public sealed class ResponseReader(ILogger<ResponseReader> logger, InterReactOptions options, ResponseParser parser)
 {
     internal ILogger Logger { get; } = logger;
     internal ResponseParser Parser { get; } = parser;

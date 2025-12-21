@@ -1,9 +1,7 @@
 ﻿namespace InterReact;
 
-public sealed class ExchangeForPhysicalTick : ITick
+public sealed class ExchangeForPhysicalTick : TickBase
 {
-    public int RequestId { get; }
-    public TickType TickType { get; }
     public double BasisPoints { get; }
     public string FormattedBasisPoints { get; }
     public double ImpliedFuturesPrice { get; }

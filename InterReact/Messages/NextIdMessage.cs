@@ -1,10 +1,10 @@
 ﻿namespace InterReact;
 
-public sealed class NextOrderId
+public sealed class NextIdMessage
 {
     public int NextId { get; }
 
-    internal NextOrderId(ResponseReader r)
+    internal NextIdMessage(ResponseReader r)
     {
         r.IgnoreMessageVersion();
         NextId = r.ReadInt();

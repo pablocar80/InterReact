@@ -12,7 +12,7 @@ public partial class Service
         Contract contract,
         IList<GenericTickType>? genericTickTypes = null,
         IList<Tag>? options = null) => Response
-            .ToObservableWithId<IHasRequestId>(
+            .ToObservableWithId(
                 Request.GetNextId,
                 id => Request.RequestMarketData(
                     id,
@@ -21,21 +21,20 @@ public partial class Service
                     false,
                     false,
                     options),
-                Request.CancelMarketData,
-                null)
+                Request.CancelMarketData)
             .CacheSource(m => m switch
             {
-                ITick tick => tick.TickType.ToString(),
+                TickBase tick => tick.TickType.ToString(),
                 _ => ""
-            }, m => false);
+            });
+
 
     public IObservable<IHasRequestId> CreateMarketDataSnapshotObservable(
         Contract contract,
         IList<GenericTickType>? genericTickTypes = null,
         bool isRegulatorySnapshot = false,
         IList<Tag>? options = null) => Response
-
-            .ToObservableWithId<IHasRequestId>(
+            .ToObservableWithId(
                 Request.GetNextId,
                 id => Request.RequestMarketData(
                     id,
@@ -44,17 +43,18 @@ public partial class Service
                     true,
                     isRegulatorySnapshot,
                     options),
-                Request.CancelMarketData,
-                m => m is SnapshotEndTick);
+                Request.CancelMarketData)
+            .TakeUntil(m => m is TickSnapshotEnd);
+
 
     public async Task<IHasRequestId[]> GetMarketDataSnapshotAsync(
         Contract contract,
         IList<GenericTickType>? genericTickTypes = null,
         bool isRegulatorySnapshot = false,
         IList<Tag>? options = null,
-        TimeSpan? timeout = null) =>
+        TimeSpan? timeout = null,
+        CancellationToken ct = default) =>
             await CreateMarketDataSnapshotObservable(contract, genericTickTypes, isRegulatorySnapshot, options)
-                .ToArray()
-                .Timeout(timeout ?? TimeSpan.MaxValue);
-
+                .WithTimeout(timeout, ct)
+                .ToArray();
 }

@@ -7,10 +7,8 @@
 /// <summary>
 /// A trade/bid/ask at a price which is different from the previous trade/bid/ask price.
 /// </summary>
-public sealed class PriceTick : ITick
+public sealed class PriceTick : TickBase
 {
-    public int RequestId { get; }
-    public TickType TickType { get; }
     public double Price { get; }
     public TickAttrib TickAttrib { get; }
     internal PriceTick()

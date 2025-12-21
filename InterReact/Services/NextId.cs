@@ -1,4 +1,5 @@
-﻿namespace InterReact;
+﻿using System.Reactive.Threading.Tasks;
+namespace InterReact;
 
 public partial class Service
 {
@@ -9,17 +10,10 @@ public partial class Service
     /// https://interactivebrokers.github.io/tws-api/order_submission.html
     // IMPORTANT: The result is updated in the constructor of the NextOrderId response message.
     /// </summary>
-    public async Task UpdateNextIdAsync(TimeSpan? timeout = null, CancellationToken ct = default)
-    {
-        IObservable<NextOrderId> observable = Response
-            .OfType<NextOrderId>()
-            .FirstAsync()
-            .CancelOn(ct)
-            .Timeout(timeout ?? TimeSpan.MaxValue);
-
-        Request.RequestNextOrderId();
-
-        await observable;
-    }
-
+    public async Task UpdateNextIdAsync(TimeSpan? timeout = null, CancellationToken ct = default) =>
+        await Response
+            .OfType<NextIdMessage>()
+            .ToObservable(Request.RequestNextOrderId)
+            .WithTimeout(timeout, ct)
+            .SingleAsync();
 }

@@ -4,10 +4,12 @@
 * File / GlobalConfiguration / API / Settings/ "Enable ActiveX and Socket Clients".
 */
 
+using System.Net;
 using System.Reactive.Linq;
 using InterReact;
 
 // Create the InterReact client by connecting to TWS/Gateway on your local machine.
+//IInterReactClient client = await InterReactClient.ConnectAsync(o => o.TwsIpAddress = IPAddress.Parse("192.168.100.15"));
 IInterReactClient client = await InterReactClient.ConnectAsync();
 
 // Create a contract object.
@@ -19,10 +21,12 @@ Contract contract = new()
     Exchange = "IDEALPRO"
 };
 
+client.Request.RequestMarketDataType(MarketDataType.Delayed);
+
 // Display the alert messages which are not associated with a particular request.
 client
     .Response
-    .OfType<AlertMessage>()
+    .OfType<Alert>()
     .Where(msg => msg.RequestId == -1)
     .Subscribe(AlertMessage => Console.WriteLine(AlertMessage.Message));
 
@@ -30,7 +34,6 @@ client
 client
     .Service
     .CreateMarketDataObservable(contract)
-    //.ThrowAlertMessage()
     .OfTickClass(selector => selector.PriceTick)
     .Subscribe(priceTick => Console.WriteLine(priceTick.TickType + " = " + priceTick.Price));
 

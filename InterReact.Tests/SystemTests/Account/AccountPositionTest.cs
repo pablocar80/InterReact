@@ -2,17 +2,31 @@
 using System.Reactive.Linq;
 namespace Account;
 
-public class AccountPosition(ITestOutputHelper output, TestFixture fixture) : CollectionTestBase(output, fixture)
+public class AccountPositions(ITestOutputHelper output, TestFixture fixture) : CollectionTestBase(output, fixture)
 {
     [Fact]
-    public async Task AccountPositionsMultiObservableTest()
+    public async Task AccountPositionsObservableTest()
     {
-        AccountPositionsMulti[] messages = await Client
+
+        AccountPosition[] messages = await Client
             .Service
-            .CreateAccountPositionsMultiObservable()
-            .TakeWhile(m => !m.IsEndMessage)
-            .ToArray()
-            .Timeout(TimeSpan.FromSeconds(1));
+            .AccountPositionsObservable
+            .TakeWhile(a => !a.IsEndMessage)
+            .Timeout(TimeSpan.FromSeconds(3))
+            .ToArray();
+
+        if (messages.Length == 0)
+            Write("no positions");
+        foreach (var m in messages)
+            Write(m.Stringify());
+    }
+
+    [Fact]
+    public async Task AccountPositionsAsyncTest()
+    {
+        AccountPosition[] messages = await Client
+            .Service
+            .GetAccountPositionsAsync(timeout: TimeSpan.FromSeconds(3));
 
         if (messages.Length == 0)
             Write("no positions");

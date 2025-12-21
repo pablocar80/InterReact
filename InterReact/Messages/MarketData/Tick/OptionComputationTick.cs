@@ -2,12 +2,10 @@
 
 /// <summary>
 /// Missing Values are indicated with null.
-/// IB's Java client indicates missing Values using DOUBLE_MAX.
+/// Missing Values are indicated with double.MaxValue.
 /// </summary>
-public sealed class OptionComputationTick : ITick
+public sealed class OptionComputationTick : TickBase
 {
-    public int RequestId { get; }
-    public TickType TickType { get; }
     public int TickAttrib { get; }
     public double ImpliedVolatility { get; }
     public double Delta { get; }

@@ -1,9 +1,9 @@
 ﻿namespace InterReact;
 
-public sealed class SnapshotEndTick : IHasRequestId
+public sealed class TickSnapshotEnd : IHasRequestId
 {
     public int RequestId { get; }
-    internal SnapshotEndTick(ResponseReader r)
+    internal TickSnapshotEnd(ResponseReader r)
     {
         r.IgnoreMessageVersion();
         RequestId = r.ReadInt();

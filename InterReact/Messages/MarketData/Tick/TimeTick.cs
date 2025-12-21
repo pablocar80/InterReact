@@ -2,10 +2,8 @@
 
 namespace InterReact;
 
-public sealed class TimeTick : ITick // from StringTick
+public sealed class TimeTick : TickBase // from StringTick
 {
-    public int RequestId { get; }
-    public TickType TickType { get; }
     /// <summary>
     /// Seconds precision.
     /// </summary>

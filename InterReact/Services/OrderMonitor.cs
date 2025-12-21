@@ -15,14 +15,14 @@ public partial class Service
 /// It provides an observable which relays order messages: 
 /// OpenOrder, OrderStatusReport, Execution, CommissionReport and possibly Alerts.
 /// Results are cached and replayed to subscribers.
-/// This observable completes only when the object is disposed.
+/// This observable completes when the object is disposed.
 /// Use Take(Timespan) operator to return an observable that contains the latest Values.
 /// </summary>
 public sealed class OrderMonitor : IDisposable
 {
     private readonly ReplaySubject<IHasOrderId> Subject = new();
     private readonly Request Request;
-    private Contract Contract { get; }
+    private readonly Contract Contract;
     public Order Order { get; }
     public int OrderId { get; }
     public IObservable<IHasOrderId> Messages { get; }
@@ -47,5 +47,9 @@ public sealed class OrderMonitor : IDisposable
 
     public void CancelOrder() => Request.CancelOrder(OrderId);
 
-    public void Dispose() => Subject.Dispose();
+    public void Dispose()
+    {
+        CancelOrder();
+        Subject.Dispose();
+    }
 }

@@ -1,9 +1,7 @@
 ﻿namespace InterReact;
 
-public sealed class GenericTick : ITick
+public sealed class GenericTick : TickBase
 {
-    public int RequestId { get; }
-    public TickType TickType { get; }
     public double Value { get; }
 
     internal GenericTick(ResponseReader r)

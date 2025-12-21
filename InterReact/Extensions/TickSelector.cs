@@ -32,7 +32,7 @@ public sealed class TickEnumerableSelector(IEnumerable<IHasRequestId> source)
     public IEnumerable<GenericTick> GenericTick => Source.OfType<GenericTick>();
     public IEnumerable<ExchangeForPhysicalTick> ExchangeForPhysicalTick => Source.OfType<ExchangeForPhysicalTick>();
     public IEnumerable<OptionComputationTick> OptionComputationTick => Source.OfType<OptionComputationTick>();
-    public IEnumerable<AlertMessage> Alert => Source.OfType<AlertMessage>();
+    public IEnumerable<Alert> Alert => Source.OfType<Alert>();
 }
 
 public sealed class TickObservableSelector(IObservable<IHasRequestId> source)
@@ -46,5 +46,5 @@ public sealed class TickObservableSelector(IObservable<IHasRequestId> source)
     public IObservable<GenericTick> GenericTick => Source.OfType<GenericTick>();
     public IObservable<ExchangeForPhysicalTick> ExchangeForPhysicalTick => Source.OfType<ExchangeForPhysicalTick>();
     public IObservable<OptionComputationTick> OptionComputationTick => Source.OfType<OptionComputationTick>();
-    public IObservable<AlertMessage> Alert => Source.OfType<AlertMessage>();
+    public IObservable<Alert> Alert => Source.OfType<Alert>();
 }

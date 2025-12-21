@@ -61,7 +61,6 @@ public class Types_Viewer(ITestOutputHelper output) : UnitTestBase(output)
         Stringifier s = new(Logger);
         var tick = new PriceTick(0, TickType.Undefined, 0, new TickAttrib());
         Write(s.Stringify(tick));
-
         //TypeInfo type = typeof(PriceTick).GetTypeInfo();
         //object instance = s.CreateInstance(type);
         //Assert.NotNull(instance);
@@ -86,7 +85,8 @@ public class Types_Viewer(ITestOutputHelper output) : UnitTestBase(output)
 
         foreach (TypeInfo type in types)
         {
-            if (type == typeof(OrderMonitor) ||
+            if (type == typeof(Request) ||
+                type == typeof(OrderMonitor) ||
                 type == typeof(TickEnumerableSelector) ||
                 type == typeof(TickObservableSelector) ||
                 type == typeof(InterReactOptions) ||
@@ -98,7 +98,7 @@ public class Types_Viewer(ITestOutputHelper output) : UnitTestBase(output)
                 object instance = Stringifier.Instance.CreateInstance(type);
                 Assert.NotNull(instance);
                 string str = Stringifier.Instance.Stringify(instance);
-                Write($"Type: {str}");
+                Write($"Value: {str}");
             }
             catch (Exception e)
             {

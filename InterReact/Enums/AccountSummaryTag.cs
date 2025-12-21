@@ -30,5 +30,5 @@ public enum AccountSummaryTag
     LookAheadExcessLiquidity,
     HighestSeverity,
     DayTradesRemaining,
-    Leverage
+    Leverage,
 }

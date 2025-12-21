@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using System.Net;
 using System.Security.Cryptography;
+using System.Security.Principal;
 namespace InterReact;
 
 public sealed class InterReactOptions
@@ -16,20 +17,21 @@ public sealed class InterReactOptions
     /// Specify the port(s) used to attempt connection to TWS/Gateway.
     /// If unspecified, connection will be attempted on ports 7496 and 7497, 4001, 4002.
     /// </summary>
-    public IEnumerable<int> IBPortAddresses { get; set; } = Extension.IBDefaultPorts;
+    public IReadOnlyList<int> IBPortAddresses { get; set; } = Extension.IBDefaultPorts;
     /// <summary>
     /// Specify a client id. Up to 8 clients can attach to TWS/Gateway.
     /// Each client requires a unique Id. The default Id is random.
     /// </summary>
     public int TwsClientId { get; set; } = RandomNumberGenerator.GetInt32(100000, 1000000);
+    public bool AllowOrderPlacement { get; set; }
 
     public int MaxRequestsPerSecond { get; set; } = 50;
     public string OptionalCapabilities { get; set; } = "";
     /// <summary>
-    /// If tick is delayed, substitute with the corresponding non-delayed tick. 
+    /// If UseDelayedTicks is true (default), delayed ticks are used for delayed market data.
+    /// If UseDelayedTicks is false, non-delayed ticks are substituted for delayed ticks.
     /// </summary>
-    public bool UseDelayedTicks { get; set; } = true; // default is true!
-
+    public bool UseDelayedTicks { get; set; } = true;
     public ServerVersion ServerVersionMin { get; } = ServerVersion.BOND_ISSUERID;
     public ServerVersion ServerVersionMax  { get; } = ServerVersion.BOND_ISSUERID;
     public ServerVersion ServerVersionCurrent { get; internal set; } = ServerVersion.NONE;
@@ -44,6 +46,9 @@ public sealed class InterReactOptions
     // Id is updated in the constructor of the NextOrderId message which is received at startup.
     // The NextOrderId message is also received in response to Request.RequestNextOrderId().
     internal int Id;
+
+    // ManagedAccounts is set in the ManagedAccounts message which is often received at startup.
+    internal IReadOnlyList<string> ManagedAccounts { get; set; } = [];
 
     internal InterReactOptions(Action<InterReactOptions>? action)
     {

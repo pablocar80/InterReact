@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace InterReact;
 
-[SuppressMessage("Usage", "CA1707", Scope = "member")]
+[SuppressMessage("Usage", "CA1707", Scope = "Identifiers should not contain underscores.")]
 public enum TickType
 {
     /// <summary> 
@@ -343,5 +343,7 @@ public enum TickType
     EtfNavLow = 99,
     SOCIAL_MARKET_ANALYTICS = 100,
     ESTIMATED_IPO_MIDPOINT = 101,
-    FINAL_IPO_LAST = 102
+    FINAL_IPO_LAST = 102,
+    DELAYED_YIELD_BID = 103,
+    DELAYED_YIELD_ASK = 104
 }

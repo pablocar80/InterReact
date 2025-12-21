@@ -25,8 +25,8 @@ public class ToObservableWithId(ITestOutputHelper output) : ReactiveUnitTestBase
 
         SomeClass o1 = new(42);
         SomeClass o2 = new(100);
-        AlertMessage o3 = new() { RequestId = 42, Time = now };
-        AlertMessage o4 = new() { RequestId = 42, Time = now };
+        Alert o3 = new() { RequestId = 42, Time = now };
+        Alert o4 = new() { RequestId = 42, Time = now };
         SomeClass o5 = new(42);
         SomeClass o6 = new(99);
 
@@ -41,7 +41,7 @@ public class ToObservableWithId(ITestOutputHelper output) : ReactiveUnitTestBase
 
         ITestableObserver<object> observer = testScheduler.CreateObserver<object>();
 
-        IDisposable subscription = source.ToObservableWithId<object>(() => 42, id => start++, id => stop++)
+        IDisposable subscription = source.ToObservableWithId(() => 42, id => start++, id => stop++)
             .Subscribe(observer);
 
         testScheduler.Start();
