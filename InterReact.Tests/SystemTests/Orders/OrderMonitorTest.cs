@@ -31,7 +31,7 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
             .Messages
             .Subscribe(m => Write($"OrderMonitor: {m.Stringify()}"));
 
-        await Task.Delay(TimeSpan.FromSeconds(5));
+        await Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
         orderMonitor.Dispose();
     }
@@ -65,7 +65,7 @@ public class Monitor(ITestOutputHelper output, TestFixture fixture) : Collection
             .Messages
             .Subscribe(m => Write($"OrderMonitor: {m.Stringify()}"));
 
-        await Task.Delay(TimeSpan.FromSeconds(3));
+        await Task.Delay(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         orderMonitor.Dispose();
     }

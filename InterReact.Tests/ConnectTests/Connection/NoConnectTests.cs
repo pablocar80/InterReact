@@ -41,7 +41,7 @@ public class NoConnect(ITestOutputHelper output) : ConnectTestBase(output, LogLe
         {
             options.LogFactory = LogFactory;
             options.IBPortAddresses = [999];
-        });
+        }, TestContext.Current.CancellationToken);
 
         ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() => task);
         Write("Exception: " + ex.ToString());

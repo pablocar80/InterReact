@@ -1,5 +1,4 @@
 ﻿using InterReact;
-using Microsoft.VisualBasic.FileIO;
 using Stringification;
 using System.Reactive.Linq;
 namespace Orders;
@@ -23,7 +22,7 @@ public class Orders(ITestOutputHelper output, TestFixture fixture) : CollectionT
         Client.Request.RequestCompletedOrders(false);
         Client.Request.RequestExecutions(345);
 
-        await Task.Delay(10000);
+        await Task.Delay(10000, TestContext.Current.CancellationToken);
 
        sub.Dispose();
     }

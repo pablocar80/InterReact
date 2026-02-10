@@ -26,7 +26,7 @@ public class AccountPositions(ITestOutputHelper output, TestFixture fixture) : C
     {
         AccountPosition[] messages = await Client
             .Service
-            .GetAccountPositionsAsync(timeout: TimeSpan.FromSeconds(3));
+            .GetAccountPositionsAsync(timeout: TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         if (messages.Length == 0)
             Write("no positions");

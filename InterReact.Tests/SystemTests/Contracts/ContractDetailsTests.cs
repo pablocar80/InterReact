@@ -18,7 +18,7 @@ public class ContractDetail(ITestOutputHelper output, TestFixture fixture) : Col
             .Service
             .CreateContractDetailsObservable(contract)
             .OfTypeOnly<ContractDetails>()
-            .WithTimeout(TimeSpan.FromSeconds(5))
+            .WithTimeout(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
             .Catch<ContractDetails, Exception>(ex =>
             {
                 // Could be symbol not found, timout or other error
@@ -55,7 +55,7 @@ public class ContractDetail(ITestOutputHelper output, TestFixture fixture) : Col
                 onCompleted: () => Write("Completed")
             );
 
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
 
         subscription.Dispose();
     }

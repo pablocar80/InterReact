@@ -8,7 +8,7 @@ public sealed class TestFixture : IAsyncLifetime
     internal readonly SharedWriter SharedWriter = new();
     internal IInterReactClient? Client;
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder
             .AddMXLogger(SharedWriter.Write)
@@ -35,7 +35,7 @@ public sealed class TestFixture : IAsyncLifetime
         Client.Request.RequestMarketDataType(MarketDataType.Delayed);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (Client is not null)
             await Client.DisposeAsync().ConfigureAwait(false);

@@ -7,7 +7,7 @@ public class IpAddressTest(ITestOutputHelper output) : ConnectTestBase(output)
     [Fact]
     public async Task AllDefaultsTest()
     {
-        IInterReactClient client = await InterReactClient.ConnectAsync();
+        IInterReactClient client = await InterReactClient.ConnectAsync(null, TestContext.Current.CancellationToken);
         await client.DisposeAsync();
     }
 
@@ -18,7 +18,7 @@ public class IpAddressTest(ITestOutputHelper output) : ConnectTestBase(output)
         {
             options.LogFactory = LogFactory;
             options.TwsIpAddress = IPAddress.Loopback;
-        });
+        }, TestContext.Current.CancellationToken);
 
         await client.DisposeAsync();
     }
@@ -30,7 +30,7 @@ public class IpAddressTest(ITestOutputHelper output) : ConnectTestBase(output)
         {
             options.LogFactory = LogFactory;
             options.TwsIpAddress = IPAddress.IPv6Loopback;
-        });
+        }, TestContext.Current.CancellationToken);
 
         await client.DisposeAsync();
     }

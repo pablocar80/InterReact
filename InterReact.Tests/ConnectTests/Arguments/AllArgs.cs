@@ -14,7 +14,7 @@ public class AllArgs(ITestOutputHelper output) : ConnectTestBase(output)
             options.TwsClientId = 1234;
             options.MaxRequestsPerSecond = 10;
             options.UseDelayedTicks = false;
-        });
+        }, TestContext.Current.CancellationToken);
 
         Assert.Equal(IPAddress.IPv6Loopback, client.RemoteIpEndPoint.Address);
 

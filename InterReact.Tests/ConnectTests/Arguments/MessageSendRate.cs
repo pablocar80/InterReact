@@ -9,7 +9,7 @@ public class MessageSendRate(ITestOutputHelper output) : ConnectTestBase(output,
     public async Task SendRateTest()
     {
         IInterReactClient client = await InterReactClient.ConnectAsync(options => 
-            options.LogFactory = LogFactory);
+            options.LogFactory = LogFactory, TestContext.Current.CancellationToken);
 
         int count = 0;
         long start = Stopwatch.GetTimestamp();

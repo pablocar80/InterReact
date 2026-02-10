@@ -1,7 +1,6 @@
 global using InterReact;
 global using SystemTests;
 global using Xunit;
-global using Xunit.Abstractions;
 using System.Diagnostics.CodeAnalysis;
 
 // tests will run in sequence

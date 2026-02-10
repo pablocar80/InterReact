@@ -8,14 +8,14 @@ public class AccountUpdate(ITestOutputHelper output, TestFixture fixture) : Coll
     [Fact]
     public async Task RequestAccountUpdatesMultiTest()
     {
-        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3));
+        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         IDisposable subscription = Client.Response.Subscribe(m => Write(m.Stringify()));
 
         Client.Request.RequestAccountUpdatesMulti(119, "All");
         //Client.Request.RequestAccountSummary(123);
 
-        await Task.Delay(TimeSpan.FromSeconds(3));
+        await Task.Delay(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         Client.Request.CancelAccountUpdatesMulti(119);
         //Client.Request.CancelAccountSummary(123);
@@ -25,7 +25,7 @@ public class AccountUpdate(ITestOutputHelper output, TestFixture fixture) : Coll
     [Fact]
     public async Task AccountUpdatesMultiObservableTest()
     {
-        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3));
+        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         AccountUpdateMulti[] messages = await Client
             .Service
@@ -45,7 +45,7 @@ public class AccountUpdate(ITestOutputHelper output, TestFixture fixture) : Coll
     [Fact]
     public async Task AccountUpdatesMultiObservableCache()
     {
-        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3));
+        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         // This observable does not complete until subscription.Dispose().
         IObservable<AccountUpdateMulti> observable = Client
@@ -56,12 +56,12 @@ public class AccountUpdate(ITestOutputHelper output, TestFixture fixture) : Coll
         List<AccountUpdateMulti> messages1 = [], messages2 = [], messages3 = [];
 
         IDisposable subscription1 = observable.Subscribe(messages1.Add);
-        await Task.Delay(TimeSpan.FromMilliseconds(10));
+        await Task.Delay(TimeSpan.FromMilliseconds(10), TestContext.Current.CancellationToken);
         IDisposable subscription2 = observable.Subscribe(messages2.Add);
-        await Task.Delay(TimeSpan.FromMilliseconds(10));
+        await Task.Delay(TimeSpan.FromMilliseconds(10), TestContext.Current.CancellationToken);
         IDisposable subscription3 = observable.Subscribe(messages3.Add);
 
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
         subscription1.Dispose();
         subscription2.Dispose();
@@ -79,11 +79,11 @@ public class AccountUpdate(ITestOutputHelper output, TestFixture fixture) : Coll
     [Fact]
     public async Task AccountUpdatesMultiAsync()
     {
-        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3));
+        IReadOnlyList<string> accounts = await Client.Service.GetManagedAccountsAsync(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         IHasRequestId[] messages = await Client
             .Service
-            .GetAccountUpdatesMultiAsync(accounts[0], timeout: TimeSpan.FromSeconds(3));
+            .GetAccountUpdatesMultiAsync(accounts[0], "", false, TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
 
         Assert.True(messages.Length > 100);
     }

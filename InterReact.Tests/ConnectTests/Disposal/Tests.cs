@@ -8,7 +8,7 @@ public class Disposal(ITestOutputHelper output) : ConnectTestBase(output)
     public async Task DisposalTest()
     {
         IInterReactClient client = await InterReactClient.ConnectAsync(options =>
-            options.LogFactory = LogFactory);
+            options.LogFactory = LogFactory, TestContext.Current.CancellationToken);
 
         await client.DisposeAsync();
 

@@ -10,7 +10,7 @@ public class BadData(ITestOutputHelper output) : ConnectTestBase(output, LogLeve
     public async Task BadRequestTest()
     {
         IInterReactClient client = await InterReactClient.ConnectAsync(options =>
-            options.LogFactory = LogFactory);
+            options.LogFactory = LogFactory, TestContext.Current.CancellationToken);
 
         int id = client.Request.GetNextId();
 
@@ -47,7 +47,7 @@ public class BadData(ITestOutputHelper output) : ConnectTestBase(output, LogLeve
         };
 
         IInterReactClient client = await InterReactClient.ConnectAsync(options =>
-            options.LogFactory = LogFactory);
+            options.LogFactory = LogFactory, TestContext.Current.CancellationToken);
 
         // This particular Id value will trigger a receive parse error when reading ContractDetails.
         int id = int.MaxValue;

@@ -34,7 +34,7 @@ public class Place(ITestOutputHelper output, TestFixture fixture) : CollectionTe
 
         Client.Request.PlaceOrder(orderId, order, contract);
 
-        await Task.Delay(TimeSpan.FromSeconds(7));
+        await Task.Delay(TimeSpan.FromSeconds(7), TestContext.Current.CancellationToken);
 
         Client.Request.CancelOrder(orderId);
     }
