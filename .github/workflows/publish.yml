@@ -14,4 +14,4 @@ jobs:
       - name: Pack
         run: dotnet pack InterReact/InterReact.csproj -c Release -o ./nupkg
       - name: Push to GitHub Packages
-        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ secrets.GH_PACKAGES_TOKEN }} --source "https://nuget.pkg.github.com/pablocar80/index.json"
+        run: dotnet nuget push "./nupkg/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json"
