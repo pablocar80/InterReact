@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <PackageId>InterReact</PackageId>
+    <PackageId>InterReactFork</PackageId>
     <Nullable>enable</Nullable>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProject>https://github.com/dshe/InterReact</PackageProject>
